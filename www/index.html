@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <meta name="viewport"
+          content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi"/>
+
+    <link rel="stylesheet" type="text/css" href="js/jquery.mobile-1.3.2.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"/>
+
+    <title>Tiggy</title>
+</head>
+<body>
+<div class="app">
+    <div data-role="page" id="home">
+        <div data-role="header" id="hdr">
+            <h1>Tiggy</h1>
+        </div>
+        <div data-role="navbar" id="nvbr">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
+                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
+                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
+            </ul>
+        </div>
+        <div data-role="content">
+            <p>Welcome to the <em>Tiggy</em> App! Move near someone who hasn't been tagged to tag them and avoid those
+                who are already it.</p>
+                        <button id="localgps">Local GPS Data</button>
+
+        </div>
+        <div data-role="footer" style="position: fixed;bottom: 0px; left:0px; right:0px;">
+            <h3 id="conn"></h3>
+        </div>
+
+    </div>
+    <div data-role="page" id="stats">
+        <div data-role="header">
+            <h1>Account Stats</h1>
+        </div>
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
+                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
+                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
+            </ul>
+        </div>
+        <div data-role="content">
+            <label for="callsign">Call Sign:</label>
+            <input type="text" placeholder="Call Sign" id="callsign">
+
+            <div id="results">
+                <h3>Last game results</h3>
+                <hr>
+                <div id="lastgameresults">
+                    <em id="nogames">No games have been played yet.</em>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div data-role="page" id="map">
+        <div data-role="header" id="mapheader" style="z-index: 999;">
+            <h1>Map</h1>
+        </div>
+        <div data-role="navbar" id="mapnavbar" style="z-index: 999;">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
+                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
+                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
+            </ul>
+        </div>
+
+        <div id="map_canvas" style="background-color: darkslategray; width:100%; height:500px"></div>
+        <div id="maptagbtn">
+             <button id="tag" data-icon="check" class="tagbtn" data-theme="b">Tag!</button>
+        </div>
+
+    </div>
+    <div data-role="dialog" id="taggedResult">
+        <div data-role="header" data-theme="d">
+            <h1>Result</h1>
+        </div>
+        <div data-role="content" data-theme="c">
+            <h1>Tagged.</h1>
+            <p>You tagged <b id="tagNumber"></b> players. Now they're it too!</p>
+            <a href="#map" data-role="button" data-rel="back" data-theme="b">Bananas</a>
+        </div>
+
+    </div>
+    <div data-role="dialog" id="justTagged">
+        <div data-role="header" data-theme="d">
+            <h1>Tagged</h1>
+        </div>
+        <div data-role="content" data-theme="c">
+            <h1>Tagged.</h1>
+            <p>You have been tagged! You're it! Now find tag everyone else to complete the game.</p>
+            <a href="#map" data-role="button" data-rel="back" data-theme="b">I understand.</a>
+        </div>
+
+    </div>
+</div>
+<script type="text/javascript" src="cordova.js"></script>
+<script src="js/jquery-1.10.2.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/angular.min.js"></script>
+<script src="js/jquery.mobile-1.3.2.min.js"></script>
+<script type="text/javascript"
+        src="http://maps.googleapis.com/maps/api/js?key=AIzaSyD7al-WekwthxW-b0Vh2f0MnvLpOEs3YLw&sensor=false"></script>
+<script type="text/javascript">
+    app.initialize();
+</script>
+<script>
+    (function () {
+        document.addEventListener("deviceready", function () {
+            if (navigator.network.connection.type == Connection.NONE) {
+                $("#conn").text('No Internet Connection.');
+            } else {
+                $("#conn").text('Connected');
+            }
+        })
+
+        var track_id = '';      // Name/ID of the exercise
+        var watch_id = null;    // ID of the geolocation
+        var tracking_data = []; // Array containing GPS position objects
+
+        var userid = window.localStorage.getItem('userid');
+        console.log('UserID:' + userid);
+        if (userid === null) {
+            console.log('Getting UserID');
+            $.ajax({
+                url:'http://www.rampup.com.au/tiggy/getdata.php',
+                data: {
+                    action:'newusr'
+                },
+                success: function(data){
+                    window.localStorage.setItem('userid',data);
+                    userid = data;
+                }
+
+            });
+        }
+
+        google.maps.visualRefresh = true;
+        var map = 'undefined';
+        var marker;
+        var range;
+        var markersArray=[];
+        var lat;
+        var long;
+        var isTagged = false;
+        $("#tag").attr('disabled','disabled');
+        // Start tracking the User
+        watch_id = navigator.geolocation.watchPosition(
+                // Success
+                function (position) {
+                    var myLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
+                    lat = position.coords.latitude;
+                    long=position.coords.longitude;
+                    if (map == 'undefined') {
+                        console.log("initalising map")
+                        var myOptions = {
+                            zoom: 18,
+                            center: myLatLng,
+                            mapTypeId: google.maps.MapTypeId.ROADMAP
+                        };
+                        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+                        marker = new google.maps.Marker({
+                            position: myLatLng,
+                            map: map,
+                            title: "Im Here!",
+                            icon: 'img/blueball.png'
+                        });
+
+                    }
+                    else {
+                        console.log("setting map")
+                        map.setCenter(myLatLng);
+                        marker.setPosition(myLatLng);
+                    }
+                    $.ajax({
+                        url:'http://www.rampup.com.au/tiggy/getdata.php',
+                        data: {
+                            action:'submitloc',
+                            lat:position.coords.latitude,
+                            long:position.coords.longitude,
+                            uid:userid,
+                            dataType:'json'
+                        },
+                        success: function(data){
+                            for(i=0; i < markersArray.length;i++){
+                                markersArray[i].setMap(null);
+                            }
+                            markersArray.length=0;
+
+                            var mapheader = $("#mapheader").height();
+
+                            var mapnavbar = $("#mapnavbar").height();
+                            var maptagbtn = $("#maptagbtn").height();
+                            var extraSpace = $(window).height() -mapnavbar - maptagbtn - mapheader - 20;
+                            console.log(extraSpace);
+
+                            $("#map_canvas").height(extraSpace);
+                            console.log($("#map_canvas").height());
+
+                            var response = data;
+                            console.log(data);
+                            for (var i=0; i<response.length; i++){
+                                if (data[i].UserID != userid){
+                                    var img;
+                                    if (response[i].IsTagged==0){
+                                        img = "img/blueball.png";
+                                    } else
+                                    {
+                                        img = "img/redball.png";
+                                    }
+                                    var othermarker = new google.maps.Marker({
+                                        position: new google.maps.LatLng(response[i].LastLat, response[i].LastLong),
+                                        map:map,
+                                        icon:img
+                                    });
+                                    markersArray.push(othermarker);
+                                } else {
+                                    if (response[i].IsTagged==1) {
+                                        if(isTagged==false){
+                                            $.mobile.changePage("#justTagged", {role: "dialog"});
+                                            isTagged=true;
+                                        }
+                                        $("#tag").button('enable');
+                                        marker.setIcon("img/redball.png");
+                                    }
+                                }
+                            }
+                        }
+
+                    });
+                    if(range != null){
+                        range.setMap(null);
+                    }
+                    range = new google.maps.Circle({ radius: 25, center: myLatLng, map: map });
+
+                },
+                // Error
+                function (error) {
+                    console.log(error);
+                },
+                // Settings
+                { maximumAge: 3000, enableHighAccuracy: true }
+        );
+
+
+        $("#callsign").change(function () {
+            window.localStorage.setItem("callsign", $("#callsign").val());
+        });
+
+        $("#callsign").val(window.localStorage.getItem("callsign"));
+
+        $("#tag").on("click", function(){
+            console.log("Clicked Tag!" + lat + long);
+
+            $.ajax({
+                url:'http://www.rampup.com.au/tiggy/getdata.php',
+
+                data: {
+                    action:'tag',
+                    lat: lat,
+                    long: long
+                },
+                success: function(data){
+                    console.log(data);
+                    $("#taggedResult #tagNumber").text(data);
+                    $.mobile.changePage("#taggedResult", {role: "dialog"});
+                }
+
+            });
+        })
+
+    })
+
+            ();
+</script>
+
+</body>
+</html>
