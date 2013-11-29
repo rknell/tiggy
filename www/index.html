@@ -175,7 +175,19 @@
         var long;
         var isTagged = false;
         $("#maptagbtn").css('visibility', 'collapse');
+var blueBall = {
+    url: "img/blueball.png",
+    size: new google.maps.Size(20,20),
+    origin: new google.maps.Point(0,0),
+    anchor: new google.maps.Point(10,10)
+}
 
+        var redBall = {
+            url: "img/redball.png",
+            size: new google.maps.Size(20,20),
+            origin: new google.maps.Point(0,0),
+            anchor: new google.maps.Point(10,10)
+        }
 
         // Start tracking the User
         watch_id = navigator.geolocation.watchPosition(
@@ -197,7 +209,8 @@
                             position: myLatLng,
                             map: map,
                             title: "Im Here!",
-                            icon: 'img/blueball.png'
+                            icon: blueBall,
+                            anchor: new google.maps.Point(10,10)
                         });
 
                     }
@@ -231,14 +244,15 @@
                                 if (data[i].UserID != userid) {
                                     var img;
                                     if (response[i].IsTagged == 0) {
-                                        img = "img/blueball.png";
+                                        img = blueBall;
                                     } else {
-                                        img = "img/redball.png";
+                                        img = redBall;
                                     }
                                     var othermarker = new google.maps.Marker({
                                         position: new google.maps.LatLng(response[i].LastLat, response[i].LastLong),
                                         map: map,
-                                        icon: img
+                                        icon: img,
+                                        anchor: new google.maps.Point(10,10)
                                     });
                                     markersArray.push(othermarker);
                                 } else {
@@ -249,7 +263,7 @@
                                         }
                                         $("#maptagbtn").css('visibility', 'visible');
                                         drawMap();
-                                        marker.setIcon("img/redball.png");
+                                        marker.setIcon(redBall);
                                     }
                                 }
                             }
