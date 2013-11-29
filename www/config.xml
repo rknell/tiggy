@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.rampup.fssg" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Tiggy</name>
+    <description>
+        International Tiggy Championships
+    </description>
+    <author email="dev@callback.apache.org" href="http://cordova.io">
+        Apache Cordova Team
+    </author>
+    <icon src="res/icon/android/icon-72-hdpi.png" width="72" height="72" />
+    <icon src="res/icon/android/icon-48-hdpi.png" width="48" height="48" />
+    <icon src="res/icon/android/icon-36-hdpi.png" width="36" height="36" />
+    <content src="index.html" />
+    <access origin="*" />
+    <preference name="fullscreen" value="true" />
+    <preference name="webviewbounce" value="false" />
+</widget>
