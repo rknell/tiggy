@@ -1,2 +1,0 @@
-<plugin name="Geolocation" value="org.apache.cordova.GeoBroker" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
