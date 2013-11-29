@@ -33,6 +33,7 @@
 </head>
 <body>
 <div class="app">
+
     <div data-role="page" id="home">
         <div data-role="header" id="hdr">
             <h1>Tiggy</h1>
@@ -47,13 +48,31 @@
         <div data-role="content">
             <p>Welcome to the <em>Tiggy</em> App! Move near someone who hasn't been tagged to tag them and avoid those
                 who are already it.</p>
-                        <button id="localgps">Local GPS Data</button>
+            <button id="localgps">Local GPS Data</button>
 
         </div>
         <div data-role="footer" style="position: fixed;bottom: 0px; left:0px; right:0px;">
             <h3 id="conn"></h3>
         </div>
 
+    </div>
+    <div data-role="page" id="map">
+        <div data-role="header" id="mapheader" style="z-index: 999;">
+            <h1>Map</h1>
+        </div>
+        <div data-role="navbar" id="mapnavbar" style="z-index: 999;">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
+                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
+                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
+            </ul>
+        </div>
+        <div data-role="content">
+            <div id="map_canvas"></div>
+            <div id="maptagbtn" style="margin: 10px">
+                <button id="tag" data-icon="check" class="tagbtn" data-theme="b">Tag!</button>
+            </div>
+        </div>
     </div>
     <div data-role="page" id="stats">
         <div data-role="header">
@@ -80,30 +99,14 @@
         </div>
 
     </div>
-    <div data-role="page" id="map">
-        <div data-role="header" id="mapheader" style="z-index: 999;">
-            <h1>Map</h1>
-        </div>
-        <div data-role="navbar" id="mapnavbar" style="z-index: 999;">
-            <ul>
-                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
-                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
-                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
-            </ul>
-        </div>
 
-        <div id="map_canvas" style="background-color: darkslategray; width:100%; height:500px"></div>
-        <div id="maptagbtn">
-             <button id="tag" data-icon="check" class="tagbtn" data-theme="b">Tag!</button>
-        </div>
-
-    </div>
     <div data-role="dialog" id="taggedResult">
         <div data-role="header" data-theme="d">
             <h1>Result</h1>
         </div>
         <div data-role="content" data-theme="c">
             <h1>Tagged.</h1>
+
             <p>You tagged <b id="tagNumber"></b> players. Now they're it too!</p>
             <a href="#map" data-role="button" data-rel="back" data-theme="b">Bananas</a>
         </div>
@@ -115,6 +118,7 @@
         </div>
         <div data-role="content" data-theme="c">
             <h1>Tagged.</h1>
+
             <p>You have been tagged! You're it! Now find tag everyone else to complete the game.</p>
             <a href="#map" data-role="button" data-rel="back" data-theme="b">I understand.</a>
         </div>
@@ -150,12 +154,12 @@
         if (userid === null) {
             console.log('Getting UserID');
             $.ajax({
-                url:'http://www.rampup.com.au/tiggy/getdata.php',
+                url: 'http://www.rampup.com.au/tiggy/getdata.php',
                 data: {
-                    action:'newusr'
+                    action: 'newusr'
                 },
-                success: function(data){
-                    window.localStorage.setItem('userid',data);
+                success: function (data) {
+                    window.localStorage.setItem('userid', data);
                     userid = data;
                 }
 
@@ -166,18 +170,20 @@
         var map = 'undefined';
         var marker;
         var range;
-        var markersArray=[];
+        var markersArray = [];
         var lat;
         var long;
         var isTagged = false;
-        $("#tag").attr('disabled','disabled');
+        $("#maptagbtn").css('visibility', 'collapse');
+
+
         // Start tracking the User
         watch_id = navigator.geolocation.watchPosition(
                 // Success
                 function (position) {
                     var myLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude)
                     lat = position.coords.latitude;
-                    long=position.coords.longitude;
+                    long = position.coords.longitude;
                     if (map == 'undefined') {
                         console.log("initalising map")
                         var myOptions = {
@@ -201,54 +207,48 @@
                         marker.setPosition(myLatLng);
                     }
                     $.ajax({
-                        url:'http://www.rampup.com.au/tiggy/getdata.php',
+                        url: 'http://www.rampup.com.au/tiggy/getdata.php',
                         data: {
-                            action:'submitloc',
-                            lat:position.coords.latitude,
-                            long:position.coords.longitude,
-                            uid:userid,
-                            dataType:'json'
+                            action: 'submitloc',
+                            lat: position.coords.latitude,
+                            long: position.coords.longitude,
+                            uid: userid,
+                            dataType: 'json'
                         },
-                        success: function(data){
-                            for(i=0; i < markersArray.length;i++){
+                        success: function (data) {
+                            for (i = 0; i < markersArray.length; i++) {
                                 markersArray[i].setMap(null);
                             }
-                            markersArray.length=0;
+                            markersArray.length = 0;
 
-                            var mapheader = $("#mapheader").height();
 
-                            var mapnavbar = $("#mapnavbar").height();
-                            var maptagbtn = $("#maptagbtn").height();
-                            var extraSpace = $(window).height() -mapnavbar - maptagbtn - mapheader - 20;
-                            console.log(extraSpace);
 
-                            $("#map_canvas").height(extraSpace);
                             console.log($("#map_canvas").height());
 
                             var response = data;
                             console.log(data);
-                            for (var i=0; i<response.length; i++){
-                                if (data[i].UserID != userid){
+                            for (var i = 0; i < response.length; i++) {
+                                if (data[i].UserID != userid) {
                                     var img;
-                                    if (response[i].IsTagged==0){
+                                    if (response[i].IsTagged == 0) {
                                         img = "img/blueball.png";
-                                    } else
-                                    {
+                                    } else {
                                         img = "img/redball.png";
                                     }
                                     var othermarker = new google.maps.Marker({
                                         position: new google.maps.LatLng(response[i].LastLat, response[i].LastLong),
-                                        map:map,
-                                        icon:img
+                                        map: map,
+                                        icon: img
                                     });
                                     markersArray.push(othermarker);
                                 } else {
-                                    if (response[i].IsTagged==1) {
-                                        if(isTagged==false){
+                                    if (response[i].IsTagged == 1) {
+                                        if (isTagged == false) {
                                             $.mobile.changePage("#justTagged", {role: "dialog"});
-                                            isTagged=true;
+                                            isTagged = true;
                                         }
-                                        $("#tag").button('enable');
+                                        $("#maptagbtn").css('visibility', 'visible');
+                                        drawMap();
                                         marker.setIcon("img/redball.png");
                                     }
                                 }
@@ -256,7 +256,7 @@
                         }
 
                     });
-                    if(range != null){
+                    if (range != null) {
                         range.setMap(null);
                     }
                     range = new google.maps.Circle({ radius: 25, center: myLatLng, map: map });
@@ -277,25 +277,46 @@
 
         $("#callsign").val(window.localStorage.getItem("callsign"));
 
-        $("#tag").on("click", function(){
+        $("#tag").on("click", function () {
             console.log("Clicked Tag!" + lat + long);
 
             $.ajax({
-                url:'http://www.rampup.com.au/tiggy/getdata.php',
+                url: 'http://www.rampup.com.au/tiggy/getdata.php',
 
                 data: {
-                    action:'tag',
+                    action: 'tag',
                     lat: lat,
                     long: long
                 },
-                success: function(data){
+                success: function (data) {
                     console.log(data);
                     $("#taggedResult #tagNumber").text(data);
                     $.mobile.changePage("#taggedResult", {role: "dialog"});
                 }
 
             });
+        });
+
+        $("#map").on("pageshow", function(){
+
+            drawMap();
         })
+
+        function drawMap(){
+            var mapheader = $("#mapheader").height();
+
+            var mapnavbar = $("#mapnavbar").height();
+            var maptagbtn = $("#maptagbtn").height();
+
+            var extraSpace = $(window).height() -mapnavbar - maptagbtn - mapheader;
+            var vis = $("#maptagbtn").css('visibility');
+            console.log(vis);
+            if (vis == 'visible') {
+                extraSpace = extraSpace - 40;
+            }
+            $("#map_canvas").height(extraSpace).width('100%');
+        }
+
 
     })
 
