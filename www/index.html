@@ -33,7 +33,24 @@
 </head>
 <body>
 <div class="app">
-
+    <div data-role="page" id="map">
+        <div data-role="header" id="mapheader" style="z-index: 999;">
+            <h1>Map</h1>
+        </div>
+        <div data-role="navbar" id="mapnavbar" style="z-index: 999;">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
+                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
+                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
+            </ul>
+        </div>
+        <div data-role="content">
+            <div id="map_canvas"></div>
+            <div id="maptagbtn" style="margin: 10px">
+                <button id="tag" data-icon="check" class="tagbtn" data-theme="b">Tag!</button>
+            </div>
+        </div>
+    </div>
     <div data-role="page" id="home">
         <div data-role="header" id="hdr">
             <h1>Tiggy</h1>
@@ -56,24 +73,7 @@
         </div>
 
     </div>
-    <div data-role="page" id="map">
-        <div data-role="header" id="mapheader" style="z-index: 999;">
-            <h1>Map</h1>
-        </div>
-        <div data-role="navbar" id="mapnavbar" style="z-index: 999;">
-            <ul>
-                <li><a href="#home" data-transition="none" data-icon="home">Tag</a></li>
-                <li><a href="#map" data-transition="none" data-icon="plus">Map</a></li>
-                <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
-            </ul>
-        </div>
-        <div data-role="content">
-            <div id="map_canvas"></div>
-            <div id="maptagbtn" style="margin: 10px">
-                <button id="tag" data-icon="check" class="tagbtn" data-theme="b">Tag!</button>
-            </div>
-        </div>
-    </div>
+
     <div data-role="page" id="stats">
         <div data-role="header">
             <h1>Account Stats</h1>
