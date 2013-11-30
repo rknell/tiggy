@@ -30,7 +30,7 @@
 
     <title>Tiggy</title>
 </head>
-<body>
+<body style="background: url(img/bg-2.jpg)">
 <div class="app">
     <div data-role="page" id="map">
         <div data-role="header" id="mapheader" style="z-index: 999;">
@@ -43,12 +43,13 @@
                 <li><a href="#stats" data-transition="none" data-icon="star">Stats</a></li>
             </ul>
         </div>
-        <div data-role="content">
-            <div id="map_canvas"></div>
+        <div id="map_canvas"></div>
+
+
             <div id="maptagbtn" style="margin: 10px">
                 <button id="tag" data-icon="check" class="tagbtn" data-theme="b">Tag!</button>
             </div>
-        </div>
+
     </div>
     <div data-role="page" id="home">
         <div data-role="header" id="hdr">
@@ -173,7 +174,26 @@
         var lat;
         var long;
         var isTagged = false;
-        $("#maptagbtn").css('visibility', 'collapse');
+
+        var styleArray = [
+            {
+                featureType: "all",
+                stylers: [
+                    { "invert_lightness": true },
+                    { "hue": "#00bbff" }
+                ]
+            },{
+                featureType: "poi.business",
+                elementType: "labels",
+                stylers: [
+                    { visibility: "off" }
+                ]
+            }
+        ];
+        var styledMap = new google.maps.StyledMapType(styleArray,{name: "Styled Map"});
+
+        $("#maptagbtn").css('display', 'none');
+
 var blueBall = {
     url: "img/blueball.png",
     size: new google.maps.Size(20,20),
@@ -200,9 +220,13 @@ var blueBall = {
                         var myOptions = {
                             zoom: 18,
                             center: myLatLng,
-                            mapTypeId: google.maps.MapTypeId.ROADMAP
+                            mapTypeControlOptions: {
+                                mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'map_style']
+                            }
                         };
                         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                        map.mapTypes.set('map_style', styledMap);
+                        map.setMapTypeId('map_style');
 
                         marker = new google.maps.Marker({
                             position: myLatLng,
@@ -260,7 +284,7 @@ var blueBall = {
                                             $.mobile.changePage("#justTagged", {role: "dialog"});
                                             isTagged = true;
                                         }
-                                        $("#maptagbtn").css('visibility', 'visible');
+                                        $("#maptagbtn").css('display', 'inherit');
                                         drawMap();
                                         marker.setIcon(redBall);
                                     }
@@ -328,12 +352,13 @@ var blueBall = {
 
             var mapnavbar = $("#mapnavbar").height();
             var maptagbtn = $("#maptagbtn").height();
-
-            var extraSpace = $(window).height() -mapnavbar - maptagbtn - mapheader;
-            var vis = $("#maptagbtn").css('visibility');
+            var mapPage = $(window).height();
+            console.log(mapPage);
+            var extraSpace =  mapPage-mapnavbar-maptagbtn-mapheader+60;
+            var vis = $("#maptagbtn").css('display');
             console.log(vis);
-            if (vis == 'visible') {
-                extraSpace = extraSpace - 40;
+            if (vis != 'none') {
+                extraSpace = extraSpace - 40-40;
             }
             $("#map_canvas").height(extraSpace).width('100%');
         }
