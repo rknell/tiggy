@@ -272,7 +272,15 @@ var blueBall = {
                     if (range != null) {
                         range.setMap(null);
                     }
-                    range = new google.maps.Circle({ radius: 25, center: myLatLng, map: map });
+                    range = new google.maps.Circle({
+                        radius: 25,
+                        center: myLatLng,
+                        map: map,
+                        strokeColor:'#00FF00',
+                        strokeOpactiy:'0.6',
+                        fillColor:'#00FF00',
+                        fillOpacity:'0.2'
+                    });
 
                 },
                 // Error
